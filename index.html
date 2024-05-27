@@ -6,23 +6,27 @@
 <body>
     <p>Most Recent Data</p>
     <img id="image" alt="Image">
-<script>
-    const fetchInterval = 5000;//10seconds
 
-    function fetchImage() {
-        fetch('/image')
-        .then(response => response.arrayBuffer())
-        .then(buffer => {
-            const image = new Blob([buffer], { type: 'image/jpeg' });
-            const imageUrl = URL.createObjectURL(image);
-            
-            // Set the data URL as the image source
-            document.getElementById('image').src = imageUrl;
-        }).catch(error => console.error('Error fetching image:', error))
-    }
+    <script src = "/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
 
-    fetchImage();
-    setInterval(fetchImage,fetchInterval);
-</script>
+        function fetchImage() {
+            fetch('/image')
+            .then(response => response.arrayBuffer())
+            .then(buffer => {
+                const image = new Blob([buffer], { type: 'image/jpeg' });
+                const imageUrl = URL.createObjectURL(image);
+                
+                // Set the data URL as the image source
+                document.getElementById('image').src = imageUrl;
+            }).catch(error => console.error('Error fetching image:', error))
+        }
+
+        fetchImage();
+        socket.on("update", () => {
+            fetchImage();
+        });
+    </script>
 </body>
 </html>
