@@ -13,11 +13,9 @@ const imagefile = "new.jpeg"
 const PORT = 8080
 var should_render_on_connect = false;
 
-function render(){
-  const pythonProcess = child_process.spawn('python3',["renderH5.py",datafile]);
-  pythonProcess.on('exit', function() {
-    io.emit('update', true);
-  })
+function sendFile(res){
+  const imageBuffer = fs.readFileSync(imagefile);
+  res.send(imageBuffer);
 }
 
 app.get('/', function(req, res){
@@ -29,30 +27,25 @@ app.get('/', function(req, res){
 });
 
 app.get('/image', (req, res) => {
-  const imageBuffer = fs.readFileSync(imagefile);
-  res.send(imageBuffer);
+  if(!should_render_on_connect){
+    sendFile(res);
+    return;
+  }
+
+  const pythonProcess = child_process.spawn('python3',["renderH5.py",datafile]);
+  pythonProcess.on('exit', function() {  
+    sendFile(res);
+  })
+  should_render_on_connect = false;
 });
 
 var fsTimeout
-
 fs.watch(datafile, (eventType, filename) => {
   if (fsTimeout) {
     return;
   }
-
-  if(io.of("/").sockets.size==0){
-    should_render_on_connect=true;
-    return;
-  }
-  render();
+  should_render_on_connect=true;
   fsTimeout = setTimeout(function() { fsTimeout=null }, 2000)
-});
-
-io.on('connect', function(){
-  if(should_render_on_connect){
-    should_render_on_connect=false;
-    render();
-  }
 });
 
 server.listen(PORT, () => {

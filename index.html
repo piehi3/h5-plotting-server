@@ -6,10 +6,8 @@
 <body>
     <p>Most Recent Data</p>
     <img id="image" alt="Image">
-
-    <script src = "/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+        const fetchInterval = 5*60*1000;//5min
 
         function fetchImage() {
             fetch('/image')
@@ -24,9 +22,7 @@
         }
 
         fetchImage();
-        socket.on("update", () => {
-            fetchImage();
-        });
+        setInterval(fetchImage,fetchInterval);
     </script>
 </body>
 </html>
